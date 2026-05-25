@@ -11,7 +11,7 @@
     <section class="site-frame">
       <div class="site-frame__inner">
         <a class="site-brand" href="index.html">HEFC 2026</a>
-        <nav class="site-nav" aria-label="頁面導覽">
+        <div class="site-nav-area"><nav class="site-nav" aria-label="頁面導覽">
           <a href="index.html">首頁</a>
           <a href="info.html">會議資訊</a>
           <a href="agenda.html">議程資訊</a>
@@ -19,16 +19,16 @@
           <a href="faq.html">FAQ</a>
           <a href="traffic_venue.html">交通、住宿與會場</a>
           <a href="contact_sponsor.html">聯絡與贊助</a>
-          <a href="english.html">ENGLISH</a>
-        </nav>
+        </nav><a class="language-toggle" href="en/call_for_papers.html" data-language-toggle data-lang="zh" aria-label="Switch language to English"><span class="language-toggle__zh">中文</span><span class="language-toggle__en">English</span></a></div>
       </div>
     </section>
 
     <section class="section hero">
       <div class="eyebrow">Call for Papers &amp; Registration</div>
       <h1>徵稿與報名</h1>
+      <p class="hero-subtitle">請填寫投稿資訊並上傳摘要 PDF。送出後系統將寄送投稿確認信，信中包含投稿編號、驗證碼與後續修改稿件入口。</p>
       <div class="hero-meta">
-        <div class="meta-card"><div class="meta-title">Deadline</div><div class="meta-value">預計 2026/07 中旬</div></div>
+        <div class="meta-card"><div class="meta-title">Deadline</div><div class="meta-value">2026/07/31</div></div>
         <div class="meta-card"><div class="meta-title">Notice</div><div class="meta-value">預計 2026/08</div></div>
         <div class="meta-card"><div class="meta-title">Registration</div><div class="meta-value">預計 2026/09 截止</div></div>
       </div>
@@ -36,7 +36,7 @@
 
     <section class="section body-section">
       <div class="section-head"><div><h2>核心主題</h2></div></div>
-      <div class="grid-2">
+      <div class="grid-3">
         <article class="card"><h3>氫能</h3><p>氫能生產、純化與儲存技術。水電解產氫與轉能 (P2G) 技術</p></article>
         <article class="card"><h3>燃料電池</h3><p>低溫與高溫燃料電池材料與系統</p></article>
         <article class="card"><h3>氫燃料系統</h3><p>氫氣供應、儲運管理與能源應用技術</p></article>
@@ -44,91 +44,204 @@
     </section>
 
     <section class="section body-section">
-      <div class="section-head"><div><h2>投稿類別與重要時程</h2></div></div>
-      <div class="grid-3">
-        <article class="card"><div class="chip">投稿類別</div><h3>一般論文、學生論文競賽、海報展示</h3><p>經審查通過之論文，將優先安排於分組發表議程中。</p></article>
-        <article class="card"><div class="chip">預計時程</div><h3>7 月中旬投稿截止、8 月接受通知、9 月報名截止</h3><p>實際日期將以後續正式公告為準。</p></article>
+      <div class="section-head"><div><h2>線上投稿</h2><p>請依摘要範本準備 PDF，並確認聯絡 Email 可正常收信。</p></div></div>
+      <div class="submission-mode-switch" data-submission-switch data-mode="submit" role="tablist" aria-label="投稿功能切換">
+        <button class="submission-mode-switch__option is-active" type="button" data-submission-mode="submit" role="tab" aria-selected="true">線上投稿</button>
+        <button class="submission-mode-switch__option" type="button" data-submission-mode="revise" role="tab" aria-selected="false">修改稿件</button>
+      </div>
+      <div class="submission-panel" data-submission-panel="submit">
+      <div class="submit-layout">
+        <aside class="card">
+          <div class="chip">Submission Notes</div>
+          <h3>填寫方式</h3>
+          <ul class="detail-list">
+            <li><strong>論文發表形式與競賽</strong>一般論文發表、學生論文競賽、海報發表。</li>
+            <li><strong>投稿領域</strong>氫能、燃料電池、氫燃料系統。</li>
+          </ul>
+          <div class="button-row">
+            <a class="button button-spotlight" href="https://docs.google.com/document/d/1I1vquSlQxkMcx8d7ing16dTGHmiUWlBh/copy" target="_blank" rel="noopener noreferrer">摘要格式（Word）</a>
+            <a class="button button-spotlight" href="https://docs.google.com/document/d/1yiD9kYKdctz0EDSV-Oi9rfc1MwTrWSDK2FLguTQukuw/export?format=pdf" target="_blank" rel="noopener noreferrer">摘要範例（PDF）</a>
+          </div>
+        </aside>
+        <article class="card">
+          <form class="submit-form" data-hefc-submit-form enctype="multipart/form-data">
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="presentation_type">論文發表形式與競賽 <span class="hint">必填</span></label>
+                <select id="presentation_type" name="presentation_type" required>
+                  <option value="">請選擇</option>
+                  <option>一般論文發表 (Oral)</option>
+                  <option>學生論文競賽 (Oral Competition)</option>
+                  <option>海報發表 (Poster)</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label for="track">投稿領域 <span class="hint">必填</span></label>
+                <select id="track" name="track" required>
+                  <option value="">— 請選擇領域 —</option>
+                  <option>1. 氫能生產與儲存</option>
+                  <option>2. 燃料電池材料與系統</option>
+                  <option>3. 能源政策與產業展望</option>
+                  <option>4. 其他相關能源技術</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="paper_title">論文題目 <span class="hint">必填</span></label>
+              <input id="paper_title" name="paper_title" type="text" placeholder="請輸入論文完整題目" required>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="authors">發表作者 <span class="hint">必填</span></label>
+                <input id="authors" name="authors" type="text" placeholder="例：王小明、陳怡君、林志豪" required>
+              </div>
+              <div class="form-row">
+                <label for="affiliation">單位 / 學校 <span class="hint">必填</span></label>
+                <input id="affiliation" name="affiliation" type="text" placeholder="例：國立臺灣科技大學 材料科學與工程系" required>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="email">發表作者 Email <span class="hint">必填</span></label>
+                <input id="email" name="email" type="email" inputmode="email" placeholder="用於接收投稿確認信" required>
+              </div>
+              <div class="form-row">
+                <label for="corresponding_author">通訊作者（指導教授）</label>
+                <input id="corresponding_author" name="corresponding_author" type="text" placeholder="例：陳教授">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="corresponding_email">通訊作者 Email</label>
+              <input id="corresponding_email" name="corresponding_email" type="email" inputmode="email" placeholder="例：advisor@mail.ntust.edu.tw">
+            </div>
+
+            <div class="form-row">
+              <label for="abstract_text">摘要簡述 <span class="hint">必填，300-500 字</span></label>
+              <textarea id="abstract_text" name="abstract_text" maxlength="1000" placeholder="請在此貼上摘要文字" required></textarea>
+            </div>
+
+            <div class="form-row">
+              <label for="keywords">關鍵字 <span class="hint">必填</span></label>
+              <input id="keywords" name="keywords" type="text" placeholder="例：氫能、燃料電池、觸媒、水管理" required>
+            </div>
+
+            <div class="form-row file-upload-box">
+              <label for="abstract_pdf">上傳論文摘要 PDF <span class="hint">必要，格式請參考左側範本</span></label>
+              <input id="abstract_pdf" name="abstract_pdf" type="file" accept=".pdf,application/pdf" required>
+            </div>
+
+            <div class="form-status" data-submit-status role="status" aria-live="polite"></div>
+
+            <div class="button-row">
+              <button class="button button-spotlight button-full" type="submit">確認送出投稿</button>
+            </div>
+          </form>
+        </article>
+      </div>
+      </div>
+      <div class="submission-panel is-hidden" data-submission-panel="revise">
+        <div class="submit-layout">
+          <aside class="card">
+            <div class="chip">Revision Notes</div>
+            <h3>修改方式</h3>
+            <ul class="detail-list">
+              <li><strong>驗證資訊</strong>請使用投稿確認信中的 Email 與驗證碼。</li>
+              <li><strong>可修改內容</strong>論文題目、發表作者、通訊作者、摘要、關鍵字與 PDF。</li>
+            </ul>
+          </aside>
+          <article class="card">
+            <form class="submit-form" data-hefc-verify-form>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label for="inline_verify_email">投稿 Email <span class="hint">必填</span></label>
+                  <input id="inline_verify_email" name="email" type="email" inputmode="email" placeholder="請輸入投稿時使用的 Email" required>
+                </div>
+                <div class="form-row">
+                  <label for="inline_verification_code">驗證碼 <span class="hint">必填</span></label>
+                <input id="inline_verification_code" name="verification_code" type="text" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" placeholder="請輸入確認信中的 5 位數驗證碼" required>
+                </div>
+              </div>
+              <div class="form-status" data-verify-status role="status" aria-live="polite"></div>
+              <div class="button-row">
+                <button class="button button-spotlight button-full" type="submit">驗證並載入稿件</button>
+              </div>
+            </form>
+          </article>
+        </div>
+        <div class="revision-update-block is-hidden" data-update-section>
+          <div class="section-head revision-update-head"><div><h2>更新投稿資料</h2><p>送出後系統會建立新版本 PDF，並寄送更新成功通知信。</p></div></div>
+          <article class="card">
+            <form class="submit-form" data-hefc-update-form enctype="multipart/form-data">
+              <input type="hidden" name="submission_id">
+              <input type="hidden" name="email">
+              <input type="hidden" name="verification_code">
+              <div class="form-row">
+                <label for="inline_update_title">論文題目 <span class="hint">必填</span></label>
+                <input id="inline_update_title" name="title" type="text" required>
+              </div>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label for="inline_update_authors">發表作者 <span class="hint">必填</span></label>
+                  <input id="inline_update_authors" name="authors" type="text" required>
+                </div>
+                <div class="form-row">
+                  <label for="inline_update_keywords">關鍵字 <span class="hint">必填</span></label>
+                  <input id="inline_update_keywords" name="keywords" type="text" required>
+                </div>
+              </div>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label for="inline_update_corresponding_author">通訊作者（指導教授）</label>
+                  <input id="inline_update_corresponding_author" name="corresponding_author" type="text">
+                </div>
+                <div class="form-row">
+                  <label for="inline_update_corresponding_email">通訊作者 Email</label>
+                  <input id="inline_update_corresponding_email" name="corresponding_email" type="email" inputmode="email">
+                </div>
+              </div>
+              <div class="form-row">
+                <label for="inline_update_abstract">摘要簡述 <span class="hint">必填，300-500 字</span></label>
+                <textarea id="inline_update_abstract" name="abstract" maxlength="1000" required></textarea>
+              </div>
+              <div class="form-row file-upload-box">
+                <label for="inline_update_pdf">重新上傳論文摘要 PDF <span class="hint">選填，若未選擇則保留原 PDF</span></label>
+                <input id="inline_update_pdf" name="abstract_pdf" type="file" accept=".pdf,application/pdf">
+              </div>
+              <div class="form-status" data-update-status role="status" aria-live="polite"></div>
+              <div class="button-row">
+                <button class="button button-spotlight button-full" type="submit">確認更新稿件</button>
+              </div>
+            </form>
+          </article>
+        </div>
       </div>
     </section>
 
     <section class="section body-section">
-      <div class="section-head"><div><h2>格式下載與檔案要求</h2></div></div>
-      <!--
-      <div class="button-row">
-        <a class="button button-spotlight" href="https://docs.google.com/document/d/1yiD9kYKdctz0EDSV-Oi9rfc1MwTrWSDK2FLguTQukuw/export?format=docx" target="_blank" rel="noopener noreferrer">下載摘要格式（Word）</a>
-        <a class="button button-spotlight" href="https://docs.google.com/document/d/1yiD9kYKdctz0EDSV-Oi9rfc1MwTrWSDK2FLguTQukuw/export?format=pdf" target="_blank" rel="noopener noreferrer">下載摘要範例（PDF）</a>
-      </div>
-      -->
-      <ul class="list">
-        <li><strong>摘要格式</strong>待公告</li>
-        <li><strong>投稿系統</strong>待公告</li>
-        <li><strong>投稿截止日期</strong>預計 2026 年 7 月中旬</li>
-        <li><strong>檔案規格</strong>待正式徵稿公告確認</li>
-      </ul>
-    </section>
-
-    <section class="section body-section">
-      <div class="section-head"><div><h2>投稿欄位清單</h2></div></div>
-      <ul class="list">
-        <li><strong>發表形式</strong>一般論文、學生論文競賽、海報展示（68cm × 90 cm）</li>
-        <li><strong>摘要格式</strong>待公告</li>
-        <li><strong>上傳方式</strong>待公告</li>
-      </ul>
-    </section>
-
-    <section class="section body-section">
-      <div class="section-head"><div><h2>註冊費用</h2><p>早鳥報名另有優惠</p></div></div>
+      <div class="section-head"><div><h2>註冊費用</h2><p>早鳥報名： 2026/?/?截止。</p></div></div>
       <div class="fee-stack">
         <article class="card fee-card">
           <h3>研討會註冊費</h3>
           <div class="stay-table-wrap">
             <table class="stay-table fee-table">
-              <thead>
-                <tr>
-                  <th>身份類別</th>
-                  <th>早鳥報名</th>
-                  <th>一般報名</th>
-                  <th>現場報名</th>
-                </tr>
-              </thead>
+              <thead><tr><th>身份類別</th><th>早鳥報名</th><th>一般報名</th><th>現場報名</th></tr></thead>
               <tbody>
-                <tr>
-                  <td><strong>一般人士（學研/業界）</strong></td>
-                  <td>NT$ 4,200</td>
-                  <td>NT$ 4,700</td>
-                  <td>NT$ 4,900</td>
-                </tr>
-                <tr>
-                  <td><strong>學生人士（需附證件）</strong></td>
-                  <td>NT$ 3,500</td>
-                  <td>NT$ 3,900</td>
-                  <td>NT$ 4,200</td>
-                </tr>
+                <tr><td><strong>一般人士（學研/業界）</strong></td><td>NT$ 4,200</td><td>NT$ 4,700</td><td>NT$ 4,900</td></tr>
+                <tr><td><strong>學生人士（需附證件）</strong></td><td>NT$ 3,500</td><td>NT$ 3,900</td><td>NT$ 4,200</td></tr>
               </tbody>
             </table>
           </div>
         </article>
-
         <article class="card fee-card">
           <h3>技術論壇註冊費</h3>
           <div class="stay-table-wrap">
             <table class="stay-table fee-table">
-              <thead>
-                <tr>
-                  <th>項目</th>
-                  <th>早鳥報名</th>
-                  <th>一般報名</th>
-                  <th>現場報名</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>技術論壇註冊</strong></td>
-                  <td>NT$ 2,000</td>
-                  <td>NT$ 2,500</td>
-                  <td>NT$ 3,000</td>
-                </tr>
-              </tbody>
+              <thead><tr><th>項目</th><th>早鳥報名</th><th>一般報名</th><th>現場報名</th></tr></thead>
+              <tbody><tr><td><strong>技術論壇註冊</strong></td><td>NT$ 2,000</td><td>NT$ 2,500</td><td>NT$ 3,000</td></tr></tbody>
             </table>
           </div>
         </article>
@@ -142,6 +255,19 @@
         <li><strong>費用包含</strong>會議資料、午餐與茶敘等項目，實際內容以報名頁公告為準</li>
         <li><strong>晚宴</strong>席次與費用將於報名資訊確認後公告</li>
       </ul>
+      <article class="card fee-card" style="margin-top:24px;">
+        <h3>匯款資訊</h3>
+        <div class="stay-table-wrap">
+          <table class="stay-table fee-table">
+            <tbody>
+              <tr><td><strong>銀行代號</strong></td><td>808</td></tr>
+              <tr><td><strong>分行</strong></td><td>玉山銀行佳里分行</td></tr>
+              <tr><td><strong>匯款帳號</strong></td><td>0428966006109</td></tr>
+              <tr><td><strong>戶名</strong></td><td>郭振坤</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
     </section>
     <footer class="site-footer" aria-label="頁尾資訊">
       <div class="site-footer__grid">
@@ -151,5 +277,8 @@
       </div>
     </footer>
   </div>
+  <script src="language_toggle.js" defer></script>
+  <script src="submission_config.js" defer></script>
+  <script src="submission_api.js" defer></script>
 </body>
 </html>
