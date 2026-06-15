@@ -67,7 +67,12 @@
         <article class="card"><div class="chip">總數</div><h3 id="statTotal">0</h3><p>目前列表資料。</p></article>
         <article class="card"><div class="chip">已完成</div><h3 id="statPaid">0</h3><p>已標記完成。</p></article>
         <article class="card"><div class="chip">待處理</div><h3 id="statUnpaid">0</h3><p>尚未完成。</p></article>
-        <article class="card"><div class="chip">需確認</div><h3 id="statReview">0</h3><p>需要人工確認。</p></article>
+        <article class="card"><div class="chip">待確認</div><h3 id="statReview">0</h3><p>等待人工確認。</p></article>
+      </div>
+
+      <div class="submission-mode-switch staff-mode-switch" data-staff-mode-switch data-mode="review" role="tablist" aria-label="工作區切換" style="margin-top:20px;">
+        <button class="submission-mode-switch__option is-active" type="button" data-staff-mode="review" role="tab" aria-selected="true">審稿管理</button>
+        <button class="submission-mode-switch__option" type="button" data-staff-mode="payment" role="tab" aria-selected="false">繳費管理</button>
       </div>
 
       <div class="card" style="margin-top:20px;">
@@ -77,7 +82,7 @@
             <input id="paymentSearch" type="search" placeholder="輸入姓名、Email、報名編號或單位">
           </div>
           <div class="form-row">
-            <label for="participantFilter">身分別篩選</label>
+            <label for="participantFilter" id="filterLabel">身分別篩選</label>
             <select id="participantFilter">
               <option value="all">全部</option>
               <option value="一般海報競賽">一般海報競賽</option>
@@ -97,21 +102,7 @@
 
       <div class="stay-table-wrap" style="margin-top:20px;">
         <table class="stay-table fee-table staff-table">
-          <thead>
-            <tr>
-              <th>報名編號</th>
-              <th>姓名</th>
-              <th>身分別</th>
-              <th>最新 PDF</th>
-              <th>這篇審核</th>
-              <th>應繳金額</th>
-              <th>繳費狀態</th>
-              <th>Email</th>
-              <th>繳費日期</th>
-              <th>轉帳末5碼</th>
-              <th>備註</th>
-            </tr>
-          </thead>
+          <thead id="staffTableHead"></thead>
           <tbody id="paymentRows"></tbody>
         </table>
       </div>
@@ -143,11 +134,11 @@
       let rows = [];
       let activeSearch = '';
       let activeParticipantFilter = 'all';
+      let activeStaffMode = 'review';
       let currentPage = 1;
       const pageSize = 20;
-      const paymentAmountOptions = ['NT$ 2,000', 'NT$ 2,500', 'NT$ 3,000', 'NT$ 3,500', 'NT$ 3,900', 'NT$ 4,200', 'NT$ 4,700', 'NT$ 4,900'];
-      const participantTypeOptions = ['一般海報競賽', '學生論文競賽', '海報發表'];
       const reviewStatusOptions = ['尚未審核', '審核通過', '審核未通過'];
+      const paymentStatusOptions = ['未繳費', '待確認', '已繳費'];
       const loginForm = document.getElementById('staffLoginForm');
       const loginStatus = document.getElementById('loginStatus');
       const loginSection = document.getElementById('loginSection');
@@ -156,11 +147,13 @@
       const participantFilter = document.getElementById('participantFilter');
       const searchButton = document.getElementById('runPaymentSearch');
       const tbody = document.getElementById('paymentRows');
+      const staffTableHead = document.getElementById('staffTableHead');
       const dashboardStatus = document.getElementById('dashboardStatus');
       const pageInfo = document.getElementById('pageInfo');
       const prevPage = document.getElementById('prevPage');
       const nextPage = document.getElementById('nextPage');
       const googleButton = document.getElementById('googleSignInButton');
+      const staffModeSwitch = document.querySelector('[data-staff-mode-switch]');
       function showStatus(message, type) {
         loginStatus.textContent = message;
         loginStatus.className = 'form-status is-visible' + (type ? ' is-' + type : '');
@@ -227,13 +220,18 @@
           email: item.email || '',
           participant_type: item.participant_type || '一般海報競賽',
           review_status: item.review_status || '尚未審核',
-          payment_amount: normalizePaymentAmount(item.payment_amount),
+          committed_review_status: item.review_status || '尚未審核',
+          payment_amount: normalizePaymentAmount(item.payment_amount) || fixedPaymentAmount(item),
           latest_pdf_url: item.latest_pdf_url || '',
-          payment_status: item.payment_status || '未繳費',
+          payment_status: normalizePaymentStatus(item.payment_status),
+          committed_payment_status: normalizePaymentStatus(item.payment_status),
           payment_date: item.payment_date || '',
           transfer_last5: item.transfer_last5 || item.receipt_no || '',
+          payment_proof_url: item.payment_proof_url || '',
+          payment_reported_at: item.payment_reported_at || '',
           staff_note: item.staff_note || '',
           organization: item.organization || item.affiliation || '',
+          topic_area: item.topic_area || '',
           staff_updated_at: item.staff_updated_at || '',
           last_submission_update: item.last_submission_update || item.updated_at || ''
         }));
@@ -241,7 +239,24 @@
       function normalizePaymentAmount(value) {
         const compact = String(value || '').replace(/[^\d]/g, '');
         const byNumber = { 2000: 'NT$ 2,000', 2500: 'NT$ 2,500', 3000: 'NT$ 3,000', 3500: 'NT$ 3,500', 3900: 'NT$ 3,900', 4200: 'NT$ 4,200', 4700: 'NT$ 4,700', 4900: 'NT$ 4,900' };
-        return paymentAmountOptions.includes(String(value || '')) ? String(value || '') : (byNumber[compact] || '');
+        return byNumber[compact] || String(value || '');
+      }
+      function normalizePaymentStatus(value) {
+        if (value === '需確認' || value === '已退款') return '待確認';
+        return paymentStatusOptions.includes(value) ? value : '未繳費';
+      }
+      function fixedPaymentAmount(item) {
+        const typeText = [item.participant_type, item.presentation_type].join(' ');
+        const today = new Date();
+        const compact = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+        const phase = compact <= 20260831 ? 'early' : (compact < 20261002 ? 'regular' : 'onsite');
+        const fees = /學生|student/i.test(typeText)
+          ? { early: 'NT$ 3,500', regular: 'NT$ 3,900', onsite: 'NT$ 4,200' }
+          : { early: 'NT$ 4,200', regular: 'NT$ 4,700', onsite: 'NT$ 4,900' };
+        if (/技術|forum/i.test(typeText)) {
+          return { early: 'NT$ 2,000', regular: 'NT$ 2,500', onsite: 'NT$ 3,000' }[phase];
+        }
+        return fees[phase];
       }
       function rowTimeValue(row) {
         const value = row.staff_updated_at || row.last_submission_update || '';
@@ -250,57 +265,111 @@
       }
       function searchableText(row) {
         const emailLocal = String(row.email || '').split('@')[0];
-        return [row.record_id, row.name, emailLocal, row.participant_type, row.review_status, row.organization, row.staff_note].join(' ').toLowerCase();
+        const paymentAmountCompact = String(row.payment_amount || '').replace(/[^\d]/g, '');
+        return [
+          row.record_id,
+          row.name,
+          row.email,
+          emailLocal,
+          row.participant_type,
+          row.review_status,
+          row.payment_amount,
+          paymentAmountCompact,
+          row.payment_status,
+          row.payment_date,
+          row.transfer_last5,
+          row.payment_proof_url,
+          row.payment_reported_at,
+          row.organization,
+          row.topic_area,
+          row.staff_note,
+          row.latest_pdf_url
+        ].join(' ').toLowerCase();
       }
       function filteredRows() {
         return rows.slice().sort((a, b) => rowTimeValue(b) - rowTimeValue(a)).filter((row) => {
           const matchesSearch = activeSearch ? searchableText(row).includes(activeSearch) : true;
-          const matchesParticipant = activeParticipantFilter === 'all' || row.participant_type === activeParticipantFilter;
+          const matchesParticipant = activeParticipantFilter === 'all' || (activeStaffMode === 'review' ? row.participant_type === activeParticipantFilter : row.payment_status === activeParticipantFilter);
           return matchesSearch && matchesParticipant;
         });
       }
       function updateStats(list) {
         document.getElementById('statTotal').textContent = list.length;
-        document.getElementById('statPaid').textContent = list.filter((row) => row.payment_status === '已繳費').length;
-        document.getElementById('statUnpaid').textContent = list.filter((row) => row.payment_status === '未繳費').length;
-        document.getElementById('statReview').textContent = list.filter((row) => row.review_status === '尚未審核').length;
+        document.getElementById('statPaid').textContent = activeStaffMode === 'review'
+          ? list.filter((row) => row.review_status === '審核通過').length
+          : list.filter((row) => row.payment_status === '已繳費').length;
+        document.getElementById('statUnpaid').textContent = activeStaffMode === 'review'
+          ? list.filter((row) => row.review_status === '尚未審核').length
+          : list.filter((row) => row.payment_status === '未繳費').length;
+        document.getElementById('statReview').textContent = activeStaffMode === 'review'
+          ? list.filter((row) => row.review_status === '審核未通過').length
+          : list.filter((row) => row.payment_status === '待確認').length;
+      }
+      function updateFilterOptions() {
+        const options = activeStaffMode === 'review'
+          ? ['全部', '一般海報競賽', '學生論文競賽', '海報發表']
+          : ['全部', '未繳費', '待確認', '已繳費'];
+        document.getElementById('filterLabel').textContent = activeStaffMode === 'review' ? '身分別篩選' : '繳費狀態篩選';
+        participantFilter.innerHTML = options.map((item, index) => `<option value="${index === 0 ? 'all' : item}">${item}</option>`).join('');
+        participantFilter.value = activeParticipantFilter;
+      }
+      function renderTableHead() {
+        const headers = activeStaffMode === 'review'
+          ? ['姓名', '身分別', '最新 PDF', '審核', 'Email', '單位', '投稿主題', '備註', '報名編號']
+          : ['姓名', 'Email', '應繳金額', '繳費日期', '繳費狀態', '轉帳末5碼', '匯款證明', '備註', '報名編號'];
+        staffTableHead.innerHTML = '<tr>' + headers.map((header) => `<th>${header}</th>`).join('') + '</tr>';
+      }
+      function renderReviewRow(row, index) {
+        const locked = row.committed_review_status === '審核通過';
+        return `
+          <tr>
+            <td>${row.name}</td>
+            <td>${row.participant_type}</td>
+            <td>${row.latest_pdf_url ? `<a class="button button-secondary" href="${row.latest_pdf_url}" target="_blank" rel="noopener noreferrer">查看 PDF</a>` : '尚無'}</td>
+            <td>
+              <select data-row="${index}" data-field="review_status"${locked ? ' disabled title="已審核通過，狀態已鎖定"' : ''}>
+                ${reviewStatusOptions.map((item) => `<option value="${item}"${item === row.review_status ? ' selected' : ''}>${item}</option>`).join('')}
+              </select>
+            </td>
+            <td>${row.email}</td>
+            <td>${row.organization}</td>
+            <td>${row.topic_area || ''}</td>
+            <td><input data-row="${index}" data-field="staff_note" value="${row.staff_note}" placeholder="審稿備註"></td>
+            <td><strong>${row.record_id}</strong></td>
+          </tr>
+        `;
+      }
+      function renderPaymentRow(row, index) {
+        const locked = row.committed_payment_status === '已繳費';
+        return `
+          <tr>
+            <td>${row.name}</td>
+            <td>${row.email}</td>
+            <td>${row.payment_amount}</td>
+            <td>${row.payment_date || '尚未回報'}</td>
+            <td>
+              <select data-row="${index}" data-field="payment_status"${locked ? ' disabled title="已繳費，狀態已鎖定"' : ''}>
+                ${paymentStatusOptions.map((item) => `<option${item === row.payment_status ? ' selected' : ''}>${item}</option>`).join('')}
+              </select>
+            </td>
+            <td><input data-row="${index}" data-field="transfer_last5" value="${row.transfer_last5}" placeholder="轉帳末5碼"></td>
+            <td>${row.payment_proof_url ? `<a class="button button-secondary" href="${row.payment_proof_url}" target="_blank" rel="noopener noreferrer">查看證明</a>` : '尚無'}</td>
+            <td><input data-row="${index}" data-field="staff_note" value="${row.staff_note}" placeholder="繳費備註"></td>
+            <td><strong>${row.record_id}</strong></td>
+          </tr>
+        `;
       }
       function renderRows() {
         const visibleRows = filteredRows();
         const totalPages = Math.max(1, Math.ceil(visibleRows.length / pageSize));
         currentPage = Math.min(Math.max(1, currentPage), totalPages);
         const pageRows = visibleRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-        tbody.innerHTML = pageRows.length ? pageRows.map((row) => `
-          <tr>
-            <td><strong>${row.record_id}</strong></td>
-            <td>${row.name}</td>
-            <td>
-              <select data-row="${rows.indexOf(row)}" data-field="participant_type">
-                ${participantTypeOptions.map((item) => `<option value="${item}"${item === row.participant_type ? ' selected' : ''}>${item}</option>`).join('')}
-              </select>
-            </td>
-            <td>${row.latest_pdf_url ? `<a class="button button-secondary" href="${row.latest_pdf_url}" target="_blank" rel="noopener noreferrer">查看 PDF</a>` : '尚無'}</td>
-            <td>
-              <select data-row="${rows.indexOf(row)}" data-field="review_status">
-                ${reviewStatusOptions.map((item) => `<option value="${item}"${item === row.review_status ? ' selected' : ''}>${item}</option>`).join('')}
-              </select>
-            </td>
-            <td>
-              <select data-row="${rows.indexOf(row)}" data-field="payment_amount">
-                ${paymentAmountOptions.map((item) => `<option value="${item}"${item === row.payment_amount ? ' selected' : ''}>${item}</option>`).join('')}
-              </select>
-            </td>
-            <td>
-              <select data-row="${rows.indexOf(row)}" data-field="payment_status">
-                ${['未繳費', '已繳費', '需確認', '已退款'].map((item) => `<option${item === row.payment_status ? ' selected' : ''}>${item}</option>`).join('')}
-              </select>
-            </td>
-            <td>${row.email}</td>
-            <td><input data-row="${rows.indexOf(row)}" data-field="payment_date" value="${row.payment_date}" placeholder="YYYY/MM/DD"></td>
-            <td><input data-row="${rows.indexOf(row)}" data-field="transfer_last5" value="${row.transfer_last5}" placeholder="轉帳末5碼"></td>
-            <td><input data-row="${rows.indexOf(row)}" data-field="staff_note" value="${row.staff_note}" placeholder="內部備註"></td>
-          </tr>
-        `).join('') : '<tr><td colspan="11">沒有符合條件的資料。</td></tr>';
+        renderTableHead();
+        updateFilterOptions();
+        tbody.innerHTML = pageRows.length ? pageRows.map((row) => {
+          const index = rows.indexOf(row);
+          return activeStaffMode === 'review' ? renderReviewRow(row, index) : renderPaymentRow(row, index);
+        }).join('') : '<tr><td colspan="10">沒有符合條件的資料。</td></tr>';
         pageInfo.textContent = `第 ${currentPage} / ${totalPages} 頁，共 ${visibleRows.length} 筆`;
         prevPage.disabled = currentPage <= 1;
         nextPage.disabled = currentPage >= totalPages;
@@ -323,7 +392,7 @@
           showDashboardStatus('請輸入至少 3 個字元再搜尋。', 'error');
           return;
         }
-        activeSearch = comparableKeyword;
+        activeSearch = keyword;
         currentPage = 1;
         renderRows();
         showDashboardStatus('已依搜尋條件更新列表。', 'success');
@@ -372,16 +441,21 @@
         loadRowsFromBackend(true);
       });
       document.getElementById('saveToBackend').addEventListener('click', async function () {
-        const updates = rows.map((row) => ({
-          record_id: row.record_id,
-          participant_type: row.participant_type,
-          review_status: row.review_status,
-          payment_amount: row.payment_amount,
-          payment_status: row.payment_status,
-          payment_date: row.payment_date,
-          transfer_last5: row.transfer_last5,
-          staff_note: row.staff_note
-        }));
+        const updates = rows.map((row) => {
+          const base = {
+            record_id: row.record_id,
+            staff_note: row.staff_note
+          };
+          if (activeStaffMode === 'review') {
+            return Object.assign(base, {
+              review_status: row.review_status
+            });
+          }
+          return Object.assign(base, {
+            payment_status: row.payment_status,
+            transfer_last5: row.transfer_last5
+          });
+        });
         try {
           showDashboardStatus('同步中，正在匯出更改...', '');
           const result = await callStaffApi({ action: 'staffUpdatePayments', token: staffToken, updates: updates });
@@ -403,6 +477,24 @@
         currentPage = 1;
         renderRows();
       });
+      if (staffModeSwitch) {
+        staffModeSwitch.querySelectorAll('[data-staff-mode]').forEach(function (button) {
+          button.addEventListener('click', function () {
+            activeStaffMode = button.dataset.staffMode || 'review';
+            staffModeSwitch.dataset.mode = activeStaffMode;
+            staffModeSwitch.querySelectorAll('[data-staff-mode]').forEach(function (option) {
+              const active = option.dataset.staffMode === activeStaffMode;
+              option.classList.toggle('is-active', active);
+              option.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            currentPage = 1;
+            activeParticipantFilter = 'all';
+            participantFilter.value = 'all';
+            renderRows();
+            showDashboardStatus(activeStaffMode === 'review' ? '已切換至審稿管理。' : '已切換至繳費管理。', 'success');
+          });
+        });
+      }
       prevPage.addEventListener('click', function () {
         currentPage -= 1;
         renderRows();
