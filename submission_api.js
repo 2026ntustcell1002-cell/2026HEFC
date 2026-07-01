@@ -25,6 +25,9 @@
     networkError: isEnglish ? 'Unable to connect to the submission service.' : '無法連線到投稿服務。',
     proofOnly: isEnglish ? 'Payment proof must be PDF, PNG, JPG, or JPEG.' : '匯款證明僅接受 PDF、PNG、JPG 或 JPEG。',
     oralClosed: isEnglish ? 'Oral abstract submission is closed. Poster submissions remain available.' : '口頭論文摘要投稿已截止，海報投稿仍可送出。',
+    badApiResponse: isEnglish
+      ? 'The submission service returned an invalid response. Please contact the conference staff.'
+      : '投稿服務回傳格式錯誤，請聯絡大會工作人員。',
     demoVerifyFailed: isEnglish
         ? 'Demo mode: use demo@hefc2026.test and verification code 12345.'
         : '展示模式：請使用 demo@hefc2026.test 與驗證碼 12345。'
@@ -47,6 +50,49 @@
   function getValue(form, name) {
     const field = form.elements[name];
     return field ? field.value.trim() : '';
+  }
+
+  function isForumOnly(form) {
+    return !!(form.elements.forum_only_registration && form.elements.forum_only_registration.checked);
+  }
+
+  function setPaperFieldsDisabled(form, disabled) {
+    form.querySelectorAll('[data-paper-only-field]').forEach(function (row) {
+      row.classList.toggle('is-disabled', disabled);
+      row.querySelectorAll('input, select, textarea').forEach(function (field) {
+        if (field.dataset.originalRequired === undefined) {
+          field.dataset.originalRequired = field.required ? '1' : '0';
+        }
+        field.disabled = disabled;
+        field.required = disabled ? false : field.dataset.originalRequired === '1';
+      });
+    });
+    const forumAddon = form.elements.technical_forum_registration;
+    if (forumAddon) {
+      forumAddon.checked = disabled ? true : forumAddon.checked;
+      forumAddon.disabled = disabled;
+    }
+  }
+
+  function syncStudentIdField(form) {
+    const select = form.querySelector('[data-registrant-identity]');
+    const row = form.querySelector('[data-student-id-row]');
+    const input = form.querySelector('[data-student-id-input]');
+    if (!select || !row || !input) return;
+    const isStudent = select.value === '學生';
+    row.classList.toggle('is-hidden', !isStudent);
+    input.required = isStudent;
+    if (!isStudent) input.value = '';
+  }
+
+  function bindForumOnlyToggle(form) {
+    const toggle = form.querySelector('[data-forum-only-toggle]');
+    if (!toggle) return;
+    const update = function () {
+      setPaperFieldsDisabled(form, toggle.checked);
+    };
+    toggle.addEventListener('change', update);
+    update();
   }
 
   function normalizePresentationType(value) {
@@ -157,7 +203,13 @@
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
-    const data = await response.json();
+    const raw = await response.text();
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(text.badApiResponse);
+    }
     if (!data.ok) {
       throw new Error((data.error && data.error.message) || text.networkError);
     }
@@ -238,6 +290,7 @@
     if (!forms.length) return;
 
     forms.forEach(function (form) {
+      bindForumOnlyToggle(form);
       const status = form.querySelector('[data-submit-status]') || document.querySelector('[data-submit-status]');
       form.addEventListener('submit', async function (event) {
       event.preventDefault();
@@ -245,29 +298,33 @@
       showStatus(status, text.sending);
 
       try {
-        const file = form.elements.abstract_pdf.files[0];
-        validatePdf(file, true);
-        const presentationType = normalizePresentationType(getValue(form, 'presentation_type'));
+        const forumOnly = isForumOnly(form);
+        const file = form.elements.abstract_pdf && form.elements.abstract_pdf.files ? form.elements.abstract_pdf.files[0] : null;
+        validatePdf(file, !forumOnly);
+        const presentationType = forumOnly ? '技術論壇報名' : normalizePresentationType(getValue(form, 'presentation_type'));
         const registrantIdentity = getValue(form, 'registrant_identity');
+        const technicalForumRegistration = forumOnly || (form.elements.technical_forum_registration && form.elements.technical_forum_registration.checked) ? '是' : '否';
         const studentIdInput = form.elements.student_id_file;
         const studentIdFile = studentIdInput && studentIdInput.files ? studentIdInput.files[0] : null;
         validateStudentId(studentIdFile, registrantIdentity === '學生');
-        if (oralSubmissionClosed(presentationType)) {
+        if (!forumOnly && oralSubmissionClosed(presentationType)) {
           throw new Error(text.oralClosed);
         }
         const payload = {
           action: 'submit',
-          title: getValue(form, 'paper_title'),
+          registration_mode: forumOnly ? '只報名技術論壇' : '論文投稿',
+          title: forumOnly ? '只報名技術論壇' : getValue(form, 'paper_title'),
           authors: getValue(form, 'authors'),
           affiliation: getValue(form, 'affiliation'),
           email: getValue(form, 'email'),
-          corresponding_author: getValue(form, 'corresponding_author'),
-          corresponding_email: getValue(form, 'corresponding_email'),
-          abstract: getValue(form, 'abstract_text'),
-          keywords: getValue(form, 'keywords'),
+          corresponding_author: forumOnly ? '' : getValue(form, 'corresponding_author'),
+          corresponding_email: forumOnly ? '' : getValue(form, 'corresponding_email'),
+          abstract: forumOnly ? '只報名技術論壇' : getValue(form, 'abstract_text'),
+          keywords: forumOnly ? '技術論壇' : getValue(form, 'keywords'),
           presentation_type: presentationType,
           registrant_identity: registrantIdentity,
-          topic_area: normalizeTopicArea(getValue(form, 'track')),
+          technical_forum_registration: technicalForumRegistration,
+          topic_area: forumOnly ? '技術論壇' : normalizeTopicArea(getValue(form, 'track')),
           pdf: await buildPdfPayload(file),
           student_id: await buildFilePayload(studentIdFile)
         };
@@ -275,6 +332,8 @@
         const submissionId = result.submission_id ? ' ' + result.submission_id : '';
         showStatus(status, text.submitSuccess + submissionId, 'success');
         form.reset();
+        setPaperFieldsDisabled(form, false);
+        syncStudentIdField(form);
       } catch (error) {
         showStatus(status, error.message || text.networkError, 'error');
       } finally {
@@ -287,19 +346,12 @@
   function bindRegistrantIdentityFields() {
     document.querySelectorAll('[data-hefc-submit-form]').forEach(function (form) {
       const select = form.querySelector('[data-registrant-identity]');
-      const row = form.querySelector('[data-student-id-row]');
-      const input = form.querySelector('[data-student-id-input]');
-      if (!select || !row || !input) return;
+      if (!select) return;
 
-      function updateVisibility() {
-        const isStudent = select.value === '學生';
-        row.classList.toggle('is-hidden', !isStudent);
-        input.required = isStudent;
-        if (!isStudent) input.value = '';
-      }
-
-      select.addEventListener('change', updateVisibility);
-      updateVisibility();
+      select.addEventListener('change', function () {
+        syncStudentIdField(form);
+      });
+      syncStudentIdField(form);
     });
   }
 
