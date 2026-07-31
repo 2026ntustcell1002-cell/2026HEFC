@@ -28,7 +28,7 @@
       <h1>徵稿與報名</h1>
       <p class="hero-subtitle">請填寫投稿資訊並上傳摘要 PDF。送出後系統將寄送投稿確認信，信中包含投稿編號、驗證碼與後續修改稿件入口；若未收到信件，請先檢查垃圾郵件匣。</p>
       <div class="hero-meta">
-        <div class="meta-card"><div class="meta-title">投稿摘要截止</div><div class="meta-value">2026/07/31</div></div>
+        <div class="meta-card"><div class="meta-title">投稿摘要截止</div><div class="meta-value">2026/08/14</div></div>
         <div class="meta-card"><div class="meta-title">早鳥報名截止</div><div class="meta-value">2026/08/31</div></div>
       </div>
     </section>
@@ -74,7 +74,7 @@
 
 
     <section class="section body-section" id="submission">
-      <div class="section-head"><div><h2>線上投稿</h2><p>請依摘要範本準備 PDF，並確認聯絡 Email 可正常收信；若未收到系統信件，請先檢查垃圾郵件匣。</p></div></div>
+      <div class="section-head"><div><h2>線上投稿</h2><p>請依摘要範本準備 PDF，並確認聯絡 Email 可正常收信；若未收到系統信件，請先檢查垃圾郵件匣。若遇到送出失敗訊息，系統將於7/31凌晨進行更新，請於8/1早上9:00重新報名</p></div></div>
       <div class="submission-mode-switch" data-submission-switch data-mode="submit" role="tablist" aria-label="投稿功能切換">
         <button class="submission-mode-switch__option is-active" type="button" data-submission-mode="submit" role="tab" aria-selected="true">線上投稿</button>
         <button class="submission-mode-switch__option" type="button" data-submission-mode="revise" role="tab" aria-selected="false">稿件與匯款管理</button>
@@ -203,8 +203,8 @@
             </div>
 
             <div class="form-row" data-paper-only-field>
-              <label for="abstract_text">摘要簡述 <span class="hint">必填，300-500 字</span></label>
-              <textarea id="abstract_text" name="abstract_text" maxlength="1000" placeholder="請在此貼上摘要文字" required></textarea>
+              <label for="abstract_text">摘要簡述 <span class="hint">必填；中文 500 字內、英文 1000 字內；系統上限 1200 字元</span></label>
+              <textarea id="abstract_text" name="abstract_text" maxlength="1200" placeholder="請在此貼上摘要文字" required></textarea>
             </div>
 
             <div class="form-row" data-paper-only-field>
@@ -287,8 +287,8 @@
                 </div>
               </div>
               <div class="form-row">
-                <label for="inline_update_abstract">摘要簡述 <span class="hint">必填，300-500 字</span></label>
-                <textarea id="inline_update_abstract" name="abstract" maxlength="1000" required></textarea>
+                <label for="inline_update_abstract">摘要簡述 <span class="hint">必填；中文 500 字內、英文 1000 字內；系統上限 1200 字元</span></label>
+                <textarea id="inline_update_abstract" name="abstract" maxlength="1200" required></textarea>
               </div>
               <div class="form-row file-upload-box">
                 <label for="inline_update_pdf">重新上傳論文摘要 PDF <span class="hint">選填，若未選擇則保留原 PDF</span></label>
